@@ -1,14 +1,14 @@
 import sys
 import time
-from typing import Optional, List
+from typing import List, Optional
 
 import cv2
 import numpy as np
-from PySide6.QtCore import Signal, QThread
+from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QImage
 
 from easyID.common_classes import RecognitionResult
-from easyID.settings import WEBCAM_ID, FPS_LIMIT, SIMILARITY_THRESHOLD
+from easyID.settings import FPS_LIMIT, SIMILARITY_THRESHOLD, WEBCAM_ID
 
 
 # this thread is used to capture frames from the webcam
@@ -32,29 +32,69 @@ class VideoThread(QThread):
             if self.results:
                 results = self.results
                 for result in results:
-                    cv2.rectangle(img=self.frame, pt1=(result.x_min, result.y_min),
-                                  pt2=(result.x_max, result.y_max), color=(0, 255, 0), thickness=1)
+                    cv2.rectangle(
+                        img=self.frame,
+                        pt1=(result.x_min, result.y_min),
+                        pt2=(result.x_max, result.y_max),
+                        color=(0, 255, 0),
+                        thickness=1,
+                    )
                     if result.age_low and result.age_high:
                         age = f"Age: {result.age_low} - {result.age_high}"
-                        cv2.putText(self.frame, age, (result.x_max, result.y_min + 15),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                        cv2.putText(
+                            self.frame,
+                            age,
+                            (result.x_max, result.y_min + 15),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            (0, 255, 0),
+                            1,
+                        )
                     if result.gender:
                         gender = f"Gender: {result.gender}"
-                        cv2.putText(self.frame, gender, (result.x_max, result.y_min + 35),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                        cv2.putText(
+                            self.frame,
+                            gender,
+                            (result.x_max, result.y_min + 35),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            (0, 255, 0),
+                            1,
+                        )
 
                     if result.subject and result.similarity > SIMILARITY_THRESHOLD:
                         subject = f"Subject: {result.subject}"
                         similarity = f"Similarity: {result.similarity}"
-                        cv2.putText(self.frame, subject, (result.x_max, result.y_min + 75),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
-                        cv2.putText(self.frame, similarity, (result.x_max, result.y_min + 95),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                        cv2.putText(
+                            self.frame,
+                            subject,
+                            (result.x_max, result.y_min + 75),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            (0, 255, 0),
+                            1,
+                        )
+                        cv2.putText(
+                            self.frame,
+                            similarity,
+                            (result.x_max, result.y_min + 95),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            (0, 255, 0),
+                            1,
+                        )
                     else:
                         unknown_subjects = True
-                        subject = f"No known faces"
-                        cv2.putText(self.frame, subject, (result.x_max, result.y_min + 75),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                        subject = "No known faces"
+                        cv2.putText(
+                            self.frame,
+                            subject,
+                            (result.x_max, result.y_min + 75),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            (0, 255, 0),
+                            1,
+                        )
 
             color_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             h, w, ch = color_frame.shape

@@ -3,16 +3,18 @@ import os
 import sys
 import time
 from pathlib import Path
+
 import cv2
-
-
 from PySide6.QtCore import QDate, QDir, QStandardPaths, Qt, QUrl, Slot
-from PySide6.QtGui import QAction, QGuiApplication, QDesktopServices, QIcon, QImage, QPixmap
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel,
-                               QMainWindow, QPushButton, QTabWidget, QToolBar, QVBoxLayout, QWidget, QMessageBox)
+from PySide6.QtGui import (QAction, QDesktopServices, QGuiApplication, QIcon,
+                           QImage, QPixmap)
 from PySide6.QtMultimedia import QSoundEffect
+from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMainWindow,
+                               QMessageBox, QPushButton, QTabWidget, QToolBar,
+                               QVBoxLayout, QWidget)
 
-from easyID.settings import WEBCAM_ID, UNIDENTIFIED_SUBJECTS_TIMEOUT, DEFAULT_HOST, DEFAULT_PORT, API_KEY
+from easyID.settings import (API_KEY, DEFAULT_HOST, DEFAULT_PORT,
+                             UNIDENTIFIED_SUBJECTS_TIMEOUT, WEBCAM_ID)
 from easyID.video_processing import ProcessingThread
 from easyID.webcam_thread import VideoThread
 
@@ -20,9 +22,18 @@ from easyID.webcam_thread import VideoThread
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--api-key", help="CompreFace recognition service API key", type=str, default=API_KEY)
-    parser.add_argument("--host", help="CompreFace host", type=str, default=DEFAULT_HOST)
-    parser.add_argument("--port", help="CompreFace port", type=str, default=DEFAULT_PORT)
+    parser.add_argument(
+        "--api-key",
+        help="CompreFace recognition service API key",
+        type=str,
+        default=API_KEY,
+    )
+    parser.add_argument(
+        "--host", help="CompreFace host", type=str, default=DEFAULT_HOST
+    )
+    parser.add_argument(
+        "--port", help="CompreFace port", type=str, default=DEFAULT_PORT
+    )
 
     args = parser.parse_args()
 
@@ -31,7 +42,9 @@ def parse_arguments() -> argparse.Namespace:
 
 # Image View Widget (On new image tabs)
 class ImageView(QWidget):
-    def __init__(self, index: int, parent: QTabWidget,  preview_pixmap: QPixmap, file_name: str) -> None:
+    def __init__(
+        self, index: int, parent: QTabWidget, preview_pixmap: QPixmap, file_name: str
+    ) -> None:
         super().__init__()
 
         self._index = index
@@ -84,7 +97,9 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # window objects
-        self.last_unidentified_time: int = 0 # gap between last unidentified subject and current time to avoid spam
+        self.last_unidentified_time: int = (
+            0  # gap between last unidentified subject and current time to avoid spam
+        )
         self._preview_pixmap: QPixmap = QPixmap()
         self._tab_widget: QTabWidget = QTabWidget()
         self._camera_viewfinder: QLabel = QLabel(self)
@@ -94,7 +109,9 @@ class MainWindow(QMainWindow):
         self._unidentified_person_alert: QMessageBox = QMessageBox()
 
         # setup unidentifed alerts
-        self._unidentified_person_audio.setSource(QUrl.fromLocalFile("unidentified.wav"))
+        self._unidentified_person_audio.setSource(
+            QUrl.fromLocalFile("unidentified.wav")
+        )
         self._unidentified_person_audio.setLoopCount(1)
         self._unidentified_person_alert.setText("Unidentified Person")
         self._unidentified_person_alert.setIcon(QMessageBox.Icon.Warning)
@@ -106,20 +123,29 @@ class MainWindow(QMainWindow):
         # setup file menu and take picture action
         file_menu = self.menuBar().addMenu("&File")
         shutter_icon = QIcon(str(Path(__file__).parent.parent / "shutter.svg"))
-        self._take_picture_action = QAction(shutter_icon, "&Take Picture", self,
-                                            shortcut="Ctrl+T",
-                                            triggered=self.take_picture)
+        self._take_picture_action = QAction(
+            shutter_icon,
+            "&Take Picture",
+            self,
+            shortcut="Ctrl+T",
+            triggered=self.take_picture,
+        )
         self._take_picture_action.setToolTip("Take Picture")
         file_menu.addAction(self._take_picture_action)
         tool_bar.addAction(self._take_picture_action)
 
-        exit_action = QAction(QIcon.fromTheme("application-exit"), "E&xit",
-                              self, shortcut="Ctrl+Q", triggered=self.kill_threads)
+        exit_action = QAction(
+            QIcon.fromTheme("application-exit"),
+            "E&xit",
+            self,
+            shortcut="Ctrl+Q",
+            triggered=self.kill_threads,
+        )
         file_menu.addAction(exit_action)
 
         # add About menu
         about_menu = self.menuBar().addMenu("&About")
-        about_qt_action = QAction("About &Qt", self, triggered=qApp.aboutQt)
+        about_qt_action = QAction("About &Qt", self, triggered=qApp.aboutQt)  # type: ignore
         about_menu.addAction(about_qt_action)
 
         # setup main widget (main view)
@@ -129,7 +155,9 @@ class MainWindow(QMainWindow):
         self.main_video_thread = VideoThread(self)
         self.main_video_thread.finished.connect(self.close)
         self.main_video_thread.updateFrame.connect(self.setImage)
-        self._camera_viewfinder.setFixedSize(self.main_video_thread.width, self.main_video_thread.height)
+        self._camera_viewfinder.setFixedSize(
+            self.main_video_thread.width, self.main_video_thread.height
+        )
 
         # initialize and link thread that gets facial recognition results
         self.main_processing_thread = ProcessingThread(self.main_video_thread, args)
@@ -138,7 +166,9 @@ class MainWindow(QMainWindow):
         # add the camera to the main view
         self._tab_widget.addTab(self._camera_viewfinder, "Viewfinder")
         self.setWindowTitle(f"EasyID viewer: Camera {WEBCAM_ID}")
-        self.show_status_message(f"EasyID viewer: ({self.main_video_thread.width}x{self.main_video_thread.height})")
+        self.show_status_message(
+            f"EasyID viewer: ({self.main_video_thread.width}x{self.main_video_thread.height})"
+        )
         # start thread
         self.start()
 
@@ -181,13 +211,20 @@ class MainWindow(QMainWindow):
     def setImage(self, image: QImage, unidentified_subject: bool) -> None:
         self._preview_pixmap = QPixmap.fromImage(image)
         self._camera_viewfinder.setPixmap(self._preview_pixmap)
-        if unidentified_subject and time.time() - self.last_unidentified_time > UNIDENTIFIED_SUBJECTS_TIMEOUT:
+        if (
+            unidentified_subject
+            and time.time() - self.last_unidentified_time
+            > UNIDENTIFIED_SUBJECTS_TIMEOUT
+        ):
             self.last_unidentified_time = time.time()
             self.take_picture(manual=False)
 
 
 def next_image_file_name(manual: bool = True) -> str:
-    pictures_location = Path(QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)) / "easyID"
+    pictures_location = (
+        Path(QStandardPaths.writableLocation(QStandardPaths.PicturesLocation))
+        / "easyID"
+    )
     if not pictures_location.exists():
         pictures_location.mkdir()
     date_string = QDate.currentDate().toString("yyyyMMdd")
@@ -201,6 +238,9 @@ def next_image_file_name(manual: bool = True) -> str:
         n = n + 1
 
 
+args = None
+
+
 def main() -> None:
     global args
     args = parse_arguments()
@@ -212,6 +252,5 @@ def main() -> None:
     sys.exit(app.exec())
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
