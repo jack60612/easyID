@@ -1,5 +1,6 @@
 import sys
 import time
+from datetime import datetime
 from typing import List, Optional
 
 import cv2
@@ -8,7 +9,7 @@ from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QImage
 
 from easyID.common_classes import RecognitionResult
-from easyID.settings import FPS_LIMIT, SIMILARITY_THRESHOLD, WEBCAM_ID
+from easyID.settings import ADD_TIMESTAMP, FPS_LIMIT, SIMILARITY_THRESHOLD, WEBCAM_ID
 
 
 # this thread is used to capture frames from the webcam
@@ -20,8 +21,8 @@ class VideoThread(QThread):
         self.results: List[RecognitionResult] = []
         self.cap = cv2.VideoCapture(WEBCAM_ID)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-        self.width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float `width`
-        self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
+        self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.frame: Optional[np.ndarray] = None
 
     def run(self):
@@ -29,6 +30,15 @@ class VideoThread(QThread):
         while self.cap.isOpened():
             (status, frame_raw) = self.cap.read()
             self.frame = cv2.flip(frame_raw, 1)
+            if ADD_TIMESTAMP:  # put timestamp on frame
+                cv2.putText(
+                    img=self.frame,
+                    text=str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-4]),
+                    org=(20, self.height - 10),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1,
+                    color=(255, 255, 255),
+                )
             if self.results:
                 results = self.results
                 for result in results:
@@ -96,11 +106,18 @@ class VideoThread(QThread):
                             1,
                         )
 
+            # convert frame to QImage for Qt(GUI)
             color_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-            h, w, ch = color_frame.shape
-            img = QImage(color_frame.data, w, h, ch * w, QImage.Format_RGB888)
-            # Emit signal
+            img = QImage(
+                color_frame.data,
+                self.width,
+                self.height,
+                3 * self.width,
+                QImage.Format_RGB888,
+            )
+            # Emit signal / send frame to pyqt
             self.updateFrame.emit(img, unknown_subjects)
+
             unknown_subjects = False
             time.sleep(FPS_LIMIT)
         sys.exit(-1)

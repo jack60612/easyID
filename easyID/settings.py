@@ -13,3 +13,4 @@ DEFAULT_PORT = "443"
 API_KEY = "00000000-0000-0000-0000-000000000002"
 SELF_SIGNED_CERT_DIR = None  # Default off
 # SELF_SIGNED_CERT_DIR = Path("../easyID-server/main-nginx/nginx-selfsigned.crt")
+ADD_TIMESTAMP = True
