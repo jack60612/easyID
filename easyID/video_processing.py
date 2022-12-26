@@ -7,6 +7,7 @@ from compreface.service import RecognitionService
 from PySide6.QtCore import QThread
 
 from easyID.common_classes import process_rec_results
+from easyID.settings import NUMBER_OF_SUBJECTS
 from easyID.webcam_thread import VideoThread
 
 
@@ -19,7 +20,7 @@ class ProcessingThread(QThread):
             args.host,
             args.port,
             {
-                "limit": 2,
+                "limit": NUMBER_OF_SUBJECTS,
                 "det_prob_threshold": 0.8,
                 "prediction_count": 1,
                 "face_plugins": "age,gender",

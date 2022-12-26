@@ -6,15 +6,36 @@ from pathlib import Path
 
 import cv2
 from PySide6.QtCore import QDate, QDir, QStandardPaths, Qt, QUrl, Slot
-from PySide6.QtGui import (QAction, QDesktopServices, QGuiApplication, QIcon,
-                           QImage, QPixmap)
+from PySide6.QtGui import (
+    QAction,
+    QDesktopServices,
+    QGuiApplication,
+    QIcon,
+    QImage,
+    QPixmap,
+)
 from PySide6.QtMultimedia import QSoundEffect
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMainWindow,
-                               QMessageBox, QPushButton, QTabWidget, QToolBar,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QTabWidget,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
 
-from easyID.settings import (API_KEY, DEFAULT_HOST, DEFAULT_PORT,
-                             UNIDENTIFIED_SUBJECTS_TIMEOUT, WEBCAM_ID)
+from easyID.settings import (
+    API_KEY,
+    DEFAULT_HOST,
+    DEFAULT_PORT,
+    UNIDENTIFIED_SUBJECTS_TIMEOUT,
+    WEBCAM_ID,
+    SELF_SIGNED_CERT_DIR,
+)
 from easyID.video_processing import ProcessingThread
 from easyID.webcam_thread import VideoThread
 
@@ -62,21 +83,25 @@ class ImageView(QWidget):
 
         top_layout.addWidget(self._file_name_label)
         top_layout.addStretch()
+        # Delete button
         delete_button = QPushButton("Delete")
         delete_button.setToolTip("Delete this image")
         top_layout.addWidget(delete_button)
         delete_button.clicked.connect(self.delete)
+        # Copy button
         copy_button = QPushButton("Copy")
         copy_button.clicked.connect(self.copy)
         copy_button.setToolTip("Copy file name to clipboard")
         top_layout.addWidget(copy_button)
         copy_button.clicked.connect(self.copy)
+        # Launch button
         launch_button = QPushButton("Launch")
         launch_button.setToolTip("Launch image viewer")
         top_layout.addWidget(launch_button)
         launch_button.clicked.connect(self.launch)
         main_layout.addLayout(top_layout)
 
+    # These are for the buttons
     @Slot()
     def delete(self) -> None:
         os.remove(self._file_name)
@@ -244,6 +269,8 @@ args = None
 def main() -> None:
     global args
     args = parse_arguments()
+    if SELF_SIGNED_CERT_DIR is not None:
+        os.environ["REQUESTS_CA_BUNDLE"] = str(SELF_SIGNED_CERT_DIR)
     app = QApplication(sys.argv)
     main_win = MainWindow()
     available_geometry = main_win.screen().availableGeometry()

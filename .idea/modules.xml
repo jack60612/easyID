@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/easyID.iml" filepath="$PROJECT_DIR$/.idea/easyID.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../easyID-server/.idea/easyID-server.iml" filepath="$PROJECT_DIR$/../easyID-server/.idea/easyID-server.iml" />
     </modules>
   </component>
 </project>
