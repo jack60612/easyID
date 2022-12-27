@@ -6,7 +6,6 @@ from typing import List, Optional
 import cv2
 import numpy as np
 from PySide6.QtCore import QThread, Signal
-from PySide6.QtGui import QImage
 
 from easyID.common_classes import RecognitionResult
 from easyID.settings import ADD_TIMESTAMP, FPS_LIMIT, SIMILARITY_THRESHOLD, WEBCAM_ID
@@ -14,7 +13,7 @@ from easyID.settings import ADD_TIMESTAMP, FPS_LIMIT, SIMILARITY_THRESHOLD, WEBC
 
 # this thread is used to capture frames from the webcam
 class VideoThread(QThread):
-    updateFrame = Signal(QImage, bool)
+    updateFrame = Signal(np.ndarray, bool)
 
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
@@ -106,17 +105,8 @@ class VideoThread(QThread):
                             1,
                         )
 
-            # convert frame to QImage for Qt(GUI)
-            color_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-            img = QImage(
-                color_frame.data,
-                self.width,
-                self.height,
-                3 * self.width,
-                QImage.Format_RGB888,
-            )
-            # Emit signal / send frame to pyqt
-            self.updateFrame.emit(img, unknown_subjects)
+            # Emit signal / send raw frame to pyqt
+            self.updateFrame.emit(self.frame, unknown_subjects)
 
             unknown_subjects = False
             time.sleep(FPS_LIMIT)

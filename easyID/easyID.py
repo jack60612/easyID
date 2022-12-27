@@ -1,5 +1,7 @@
 import argparse
 import os
+
+import numpy as np
 import sys
 import time
 from pathlib import Path
@@ -197,7 +199,7 @@ class MainWindow(QMainWindow):
         self.show_status_message(
             f"EasyID viewer: ({self.main_video_thread.width}x{self.main_video_thread.height})"
         )
-        # start thread
+        # start all threads
         self.start()
 
     def show_status_message(self, message):
@@ -236,8 +238,16 @@ class MainWindow(QMainWindow):
         self.main_processing_thread.start()
 
     @Slot(QImage, bool)
-    def setImage(self, image: QImage, unidentified_subject: bool) -> None:
-        self._preview_pixmap = QPixmap.fromImage(image)
+    def setImage(self, frame: np.ndarray, unidentified_subject: bool) -> None:
+        # convert cv2 frame to QImage for Qt(GUI)
+        # rgb swapped changes bgr to rgb, then we change it to a PixMap for displaying in the GUI
+        self._preview_pixmap = QPixmap.fromImage(QImage(
+            frame.data,
+            self.main_video_thread.width,
+            self.main_video_thread.height,
+            3 * self.main_video_thread.width,
+            QImage.Format_RGB888,
+        ).rgbSwapped())
         self._camera_viewfinder.setPixmap(self._preview_pixmap)
         if (
             unidentified_subject
