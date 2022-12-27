@@ -23,7 +23,7 @@ class ProcessingThread(QThread):
                 "limit": NUMBER_OF_SUBJECTS,
                 "det_prob_threshold": 0.8,
                 "prediction_count": 1,
-                "face_plugins": "age,gender",
+                "face_plugins": "age",  # if you want gender too, add "gender" to this list
                 "status": False,
             },
         )

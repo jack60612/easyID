@@ -107,7 +107,6 @@ class VideoThread(QThread):
 
             # Emit signal / send raw frame to pyqt
             self.updateFrame.emit(self.frame, unknown_subjects)
-
             unknown_subjects = False
             time.sleep(FPS_LIMIT)
         sys.exit(-1)

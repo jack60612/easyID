@@ -241,13 +241,15 @@ class MainWindow(QMainWindow):
     def setImage(self, frame: np.ndarray, unidentified_subject: bool) -> None:
         # convert cv2 frame to QImage for Qt(GUI)
         # rgb swapped changes bgr to rgb, then we change it to a PixMap for displaying in the GUI
-        self._preview_pixmap = QPixmap.fromImage(QImage(
-            frame.data,
-            self.main_video_thread.width,
-            self.main_video_thread.height,
-            3 * self.main_video_thread.width,
-            QImage.Format_RGB888,
-        ).rgbSwapped())
+        self._preview_pixmap = QPixmap.fromImage(
+            QImage(
+                frame.data,
+                self.main_video_thread.width,
+                self.main_video_thread.height,
+                3 * self.main_video_thread.width,
+                QImage.Format_RGB888,
+            ).rgbSwapped()
+        )
         self._camera_viewfinder.setPixmap(self._preview_pixmap)
         if (
             unidentified_subject
