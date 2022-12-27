@@ -14,7 +14,7 @@ from PySide6.QtGui import (
     QImage,
     QPixmap,
 )
-from PySide6.QtMultimedia import QSoundEffect
+from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -32,9 +32,10 @@ from easyID.settings import (
     API_KEY,
     DEFAULT_HOST,
     DEFAULT_PORT,
+    MUTE_ALERTS,
+    SELF_SIGNED_CERT_DIR,
     UNIDENTIFIED_SUBJECTS_TIMEOUT,
     WEBCAM_ID,
-    SELF_SIGNED_CERT_DIR,
 )
 from easyID.video_processing import ProcessingThread
 from easyID.webcam_thread import VideoThread
@@ -129,15 +130,17 @@ class MainWindow(QMainWindow):
         self._tab_widget: QTabWidget = QTabWidget()
         self._camera_viewfinder: QLabel = QLabel(self)
 
-        # unidentified alerts & audio
-        self._unidentified_person_audio: QSoundEffect = QSoundEffect()
+        # unidentified alerts & audio ( use default device )
+        self._unidentified_person_audio: QMediaPlayer = QMediaPlayer(self)
         self._unidentified_person_alert: QMessageBox = QMessageBox()
 
-        # setup unidentifed alerts
+        # setup unidentifed person alerts
+        audio_output = QAudioOutput(self)
+        audio_output.setVolume(0.0 if MUTE_ALERTS else 0.25)
+        self._unidentified_person_audio.setAudioOutput(audio_output)
         self._unidentified_person_audio.setSource(
             QUrl.fromLocalFile("unidentified.wav")
         )
-        self._unidentified_person_audio.setLoopCount(1)
         self._unidentified_person_alert.setText("Unidentified Person")
         self._unidentified_person_alert.setIcon(QMessageBox.Icon.Warning)
 
