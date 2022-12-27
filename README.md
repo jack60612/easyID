@@ -6,7 +6,7 @@
 2. Clone this repository
 3. Install dependencies `pip install -r requirements.txt`
 4. Edit the config in `easyID/settings.py`
-4. Run `python -m easyid`
+5. Run `python -m easyid`
 
 ## Building the app:
 TBD
