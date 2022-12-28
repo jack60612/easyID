@@ -7,7 +7,7 @@ from compreface.service import RecognitionService
 from PySide6.QtCore import QThread
 
 from easyID.common_classes import process_rec_results
-from easyID.settings import NUMBER_OF_SUBJECTS
+from easyID.settings import CF_OPTIONS
 from easyID.webcam_thread import VideoThread
 
 
@@ -19,17 +19,9 @@ class ProcessingThread(QThread):
         self.compre_face: CompreFace = CompreFace(
             args.host,
             args.port,
-            {
-                "limit": NUMBER_OF_SUBJECTS,
-                "det_prob_threshold": 0.8,
-                "prediction_count": 1,
-                "face_plugins": "age",  # if you want gender too, add "gender" to this list
-                "status": False,
-            },
+            CF_OPTIONS,
         )
-        self.recognition: RecognitionService = self.compre_face.init_face_recognition(
-            args.api_key
-        )
+        self.recognition: RecognitionService = self.compre_face.init_face_recognition(args.api_key)
 
     def run(self):
         while self.video_thread.cap.isOpened():

@@ -1,21 +1,13 @@
 import argparse
 import os
-
-import numpy as np
 import sys
 import time
 from pathlib import Path
 
 import cv2
+import numpy as np
 from PySide6.QtCore import QDate, QDir, QStandardPaths, Qt, QUrl, Slot
-from PySide6.QtGui import (
-    QAction,
-    QDesktopServices,
-    QGuiApplication,
-    QIcon,
-    QImage,
-    QPixmap,
-)
+from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QIcon, QImage, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
 from PySide6.QtWidgets import (
     QApplication,
@@ -52,12 +44,8 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         default=API_KEY,
     )
-    parser.add_argument(
-        "--host", help="CompreFace host", type=str, default=DEFAULT_HOST
-    )
-    parser.add_argument(
-        "--port", help="CompreFace port", type=str, default=DEFAULT_PORT
-    )
+    parser.add_argument("--host", help="CompreFace host", type=str, default=DEFAULT_HOST)
+    parser.add_argument("--port", help="CompreFace port", type=str, default=DEFAULT_PORT)
 
     args = parser.parse_args()
 
@@ -66,9 +54,7 @@ def parse_arguments() -> argparse.Namespace:
 
 # Image View Widget (On new image tabs)
 class ImageView(QWidget):
-    def __init__(
-        self, index: int, parent: QTabWidget, preview_pixmap: QPixmap, file_name: str
-    ) -> None:
+    def __init__(self, index: int, parent: QTabWidget, preview_pixmap: QPixmap, file_name: str) -> None:
         super().__init__()
 
         self._index = index
@@ -125,9 +111,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # window objects
-        self.last_unidentified_time: int = (
-            0  # gap between last unidentified subject and current time to avoid spam
-        )
+        self.last_unidentified_time: int = 0  # gap between last unidentified subject and current time to avoid spam
         self._preview_pixmap: QPixmap = QPixmap()
         self._tab_widget: QTabWidget = QTabWidget()
         self._camera_viewfinder: QLabel = QLabel(self)
@@ -140,9 +124,7 @@ class MainWindow(QMainWindow):
         audio_output = QAudioOutput(self)
         audio_output.setVolume(0.0 if MUTE_ALERTS else 0.25)
         self._unidentified_person_audio.setAudioOutput(audio_output)
-        self._unidentified_person_audio.setSource(
-            QUrl.fromLocalFile("unidentified.wav")
-        )
+        self._unidentified_person_audio.setSource(QUrl.fromLocalFile("unidentified.wav"))
         self._unidentified_person_alert.setText("Unidentified Person")
         self._unidentified_person_alert.setIcon(QMessageBox.Icon.Warning)
 
@@ -185,9 +167,7 @@ class MainWindow(QMainWindow):
         self.main_video_thread = VideoThread(self)
         self.main_video_thread.finished.connect(self.close)
         self.main_video_thread.updateFrame.connect(self.setImage)
-        self._camera_viewfinder.setFixedSize(
-            self.main_video_thread.width, self.main_video_thread.height
-        )
+        self._camera_viewfinder.setFixedSize(self.main_video_thread.width, self.main_video_thread.height)
 
         # initialize and link thread that gets facial recognition results
         self.main_processing_thread = ProcessingThread(self.main_video_thread, args)
@@ -196,9 +176,7 @@ class MainWindow(QMainWindow):
         # add the camera to the main view
         self._tab_widget.addTab(self._camera_viewfinder, "Viewfinder")
         self.setWindowTitle(f"EasyID viewer: Camera {WEBCAM_ID}")
-        self.show_status_message(
-            f"EasyID viewer: ({self.main_video_thread.width}x{self.main_video_thread.height})"
-        )
+        self.show_status_message(f"EasyID viewer: ({self.main_video_thread.width}x{self.main_video_thread.height})")
         # start all threads
         self.start()
 
@@ -217,7 +195,7 @@ class MainWindow(QMainWindow):
             self._tab_widget.addTab(image_view, f"Unidentified Person #{index}")
             self._unidentified_person_alert.exec()
             self._unidentified_person_audio.play()
-        self._tab_widget.setCurrentIndex(index)
+        # self._tab_widget.setCurrentIndex(index)  # switch to new tab
 
     @Slot()
     def kill_threads(self) -> None:
@@ -251,20 +229,13 @@ class MainWindow(QMainWindow):
             ).rgbSwapped()
         )
         self._camera_viewfinder.setPixmap(self._preview_pixmap)
-        if (
-            unidentified_subject
-            and time.time() - self.last_unidentified_time
-            > UNIDENTIFIED_SUBJECTS_TIMEOUT
-        ):
+        if unidentified_subject and time.time() - self.last_unidentified_time > UNIDENTIFIED_SUBJECTS_TIMEOUT:
             self.last_unidentified_time = time.time()
             self.take_picture(manual=False)
 
 
 def next_image_file_name(manual: bool = True) -> str:
-    pictures_location = (
-        Path(QStandardPaths.writableLocation(QStandardPaths.PicturesLocation))
-        / "easyID"
-    )
+    pictures_location = Path(QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)) / "easyID"
     if not pictures_location.exists():
         pictures_location.mkdir()
     date_string = QDate.currentDate().toString("yyyyMMdd")

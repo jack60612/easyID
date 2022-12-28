@@ -37,9 +37,7 @@ class RecognitionResult:
             )
 
 
-def process_rec_results(
-    results: Optional[list[dict[str, Any]]]
-) -> List[RecognitionResult]:
+def process_rec_results(results: Optional[list[dict[str, Any]]]) -> List[RecognitionResult]:
     if results is None:
         return []
     return [RecognitionResult.from_result(result) for result in results]
