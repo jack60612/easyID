@@ -3,7 +3,7 @@ from pathlib import Path
 
 FPS_LIMIT = 1 / 60  # 60 fps
 UNIDENTIFIED_SUBJECTS_TIMEOUT = 5  # seconds
-SIMILARITY_THRESHOLD = 0.6  # 60% similarity
+SIMILARITY_THRESHOLD = 0.75  # 75% similarity
 NUMBER_OF_SUBJECTS = 2  # number of subjects to be recognized
 
 # config options
