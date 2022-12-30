@@ -59,8 +59,8 @@ class VideoThread(QThread):
                             (0, 255, 0),
                             1,
                         )
-                    if result.gender:
-                        gender = f"Gender: {result.gender}"
+                    if result.sex:
+                        gender = f"Sex: {result.sex}"
                         cv2.putText(
                             self.frame,
                             gender,

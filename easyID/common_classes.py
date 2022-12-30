@@ -10,7 +10,7 @@ class RecognitionResult:
     y_max: int
     age_high: Optional[int]
     age_low: Optional[int]
-    gender: Optional[str]
+    sex: Optional[str]
     subject: Optional[str]
     similarity: Optional[float]
 
@@ -20,7 +20,7 @@ class RecognitionResult:
             age = result.get("age", {})
             age_high = age.get("high")
             age_low = age.get("low")
-            gender = result.get("gender", {}).get("value")
+            sex = result.get("gender", {}).get("value")
             subject_d = result.get("subjects", [{}])[0]
             subject = subject_d.get("subject")
             similarity = subject_d.get("similarity")
@@ -31,7 +31,7 @@ class RecognitionResult:
                 result["box"]["y_max"],
                 age_high,
                 age_low,
-                gender,
+                sex,
                 subject,
                 similarity,
             )
