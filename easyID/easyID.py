@@ -170,8 +170,7 @@ class MainWindow(QMainWindow):
         self._camera_viewfinder.setFixedSize(self.main_video_thread.width, self.main_video_thread.height)
 
         # initialize and link thread that gets facial recognition results
-        self.main_processing_thread = ProcessingThread(self.main_video_thread, args)
-        self.main_processing_thread.finished.connect(self.close)
+        self.main_processing_thread = ProcessingThread(self.main_video_thread, args)  # python thread, not qt thread
 
         # add the camera to the main view
         self._tab_widget.addTab(self._camera_viewfinder, "Viewfinder")
@@ -200,10 +199,12 @@ class MainWindow(QMainWindow):
     @Slot()
     def kill_threads(self) -> None:
         print("Finishing...")
+        # stop the video thread
         self._take_picture_action.setEnabled(False)
         self.main_video_thread.cap.release()
         cv2.destroyAllWindows()
         self.main_video_thread.terminate()
+        # stop the processing thread
         self.main_processing_thread.terminate()
         # Give time for the thread to finish
         time.sleep(1)

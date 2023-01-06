@@ -109,4 +109,7 @@ class VideoThread(QThread):
             self.updateFrame.emit(self.frame, unknown_subjects)
             unknown_subjects = False
             time.sleep(FPS_LIMIT)
+        # on exit:
+        self.frame = None
+        print("VideoThread exited")
         sys.exit(-1)
