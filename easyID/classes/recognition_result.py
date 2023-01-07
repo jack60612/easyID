@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from easyID.settings import SIMILARITY_THRESHOLD
+
 
 @dataclass(frozen=True)
 class RecognitionResult:
@@ -36,8 +38,16 @@ class RecognitionResult:
                 similarity,
             )
 
+    @property
+    def is_matching(self) -> bool:
+        return self.subject is not None and self.similarity > SIMILARITY_THRESHOLD
+
 
 def process_rec_results(results: Optional[list[dict[str, Any]]]) -> List[RecognitionResult]:
     if results is None:
         return []
     return [RecognitionResult.from_result(result) for result in results]
+
+
+def get_matching_results(results: List[RecognitionResult]) -> List[RecognitionResult]:
+    return [result for result in results if result.is_matching]

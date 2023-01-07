@@ -4,21 +4,36 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
+from easyID.classes.subject_record import SubjectPathRecord
 from easyID.settings import API_KEY, DEFAULT_HOST, DEFAULT_PORT
-from scripts.subject_info import SubjectRecord
 from scripts.upload_subjects import UploadSubjects
 
 
-# when exporting the csv file, use default settings for the delimiter and quotechar. You need to at least include the following columns:
-# Last Name, First Name, Subject ID(student ID), Internal ID, Grade, Images. The order doesn't matter, but don't change the names of the rows.
+# when exporting the csv file, use default settings for the delimiter and quotechar.
+# You need to at least include the following columns:
+# Last Name, First Name, Subject ID(student ID), Internal ID, Grade, Images.
+# The order doesn't matter, but don't change the names of the rows.
 def parse_arguments() -> Tuple[Path, Path, str, str, str]:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--spreadsheet-path", help="The location of the spreadsheet(csv) exported from blueprint", type=str, default=str(Path(".") / "students.csv")
+        "--spreadsheet-path",
+        help="The location of the spreadsheet(csv) exported from blueprint",
+        type=str,
+        default=str(Path(".") / "students.csv"),
     )
-    parser.add_argument("--photo-dir", help="Directory where all the photos are located", type=str, default=str(Path(".")))
-    parser.add_argument("--api-key", help="CompreFace recognition service API key", type=str, default=API_KEY)
+    parser.add_argument(
+        "--photo-dir",
+        help="Directory where all the photos are located",
+        type=str,
+        default=str(Path(".")),
+    )
+    parser.add_argument(
+        "--api-key",
+        help="CompreFace recognition service API key",
+        type=str,
+        default=API_KEY,
+    )
     parser.add_argument("--host", help="CompreFace host", type=str, default=DEFAULT_HOST)
     parser.add_argument("--port", help="CompreFace port", type=str, default=DEFAULT_PORT)
 
@@ -38,7 +53,7 @@ class ParseBlueprintData:
     def __init__(self, spreadsheet_path: Path, photo_dir: Path) -> None:
         self.spreadsheet_path: Path = spreadsheet_path
         self.photo_dir: Path = photo_dir
-        self.subject_records: List[SubjectRecord] = []
+        self.subject_records: List[SubjectPathRecord] = []
         # validate the paths
         if not self.spreadsheet_path.exists() and not self.spreadsheet_path.is_file():
             raise ValueError("The spreadsheet does not exist")
@@ -59,21 +74,17 @@ class ParseBlueprintData:
             if not image_path.exists() and not image_path.is_file():
                 raise ValueError(f"The image for {row['Last Name']}, {row['First Name']} does not exist")
             # now we create the SubjectRecord object
-            try:
-                id_number = row["Subject ID"] if row["Subject ID"] else row["Internal ID"]  # if empty, use Internal ID (for volunteers)
-                int(id_number)  # validate that the id number can be converted to an int (keep leading zeros)
-                subject_records.append(
-                    SubjectRecord(
-                        str(row["Last Name"]),
-                        str(row["First Name"]),
-                        id_number,
-                        int(row["Grade"] if row["Grade"] else 13),
-                        Path(image_path),
-                    )
+            subject_records.append(
+                SubjectPathRecord(
+                    str(row["Last Name"]),
+                    str(row["First Name"]),
+                    row["Subject ID"]
+                    if row["Subject ID"]
+                    else row["Internal ID"],  # if empty, use Internal ID (for volunteers)
+                    int(row["Grade"] if row["Grade"] else 13),
+                    Path(image_path),
                 )
-
-            except ValueError:
-                raise ValueError(f"Invalid data for {row}")
+            )
         self.subject_records = subject_records
 
     def spreadsheet_to_dict(self) -> List[Dict[str, Union[str, int]]]:

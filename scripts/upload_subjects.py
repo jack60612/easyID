@@ -7,8 +7,8 @@ from compreface import CompreFace
 from compreface.collections import FaceCollection, Subjects
 from compreface.service import RecognitionService
 
+from easyID.classes.subject_record import SubjectPathRecord
 from easyID.settings import CF_OPTIONS, SELF_SIGNED_CERT_DIR
-from scripts.subject_info import SubjectRecord
 
 
 class UploadSubjects:
@@ -18,15 +18,19 @@ class UploadSubjects:
             os.environ["REQUESTS_CA_BUNDLE"] = str(SELF_SIGNED_CERT_DIR)
         # setup CompreFace
         self.compre_face: CompreFace = CompreFace(host, port, CF_OPTIONS)  # init compreface
-        self.recognition: RecognitionService = self.compre_face.init_face_recognition(api_key)  # setup recognition service
-        self.cf_subjects: Subjects = self.recognition.get_subjects()  # this is how we add new subjects & find existing ones
+        self.recognition: RecognitionService = self.compre_face.init_face_recognition(
+            api_key
+        )  # setup recognition service
+        self.cf_subjects: Subjects = (
+            self.recognition.get_subjects()
+        )  # this is how we add new subjects & find existing ones
         self.cf_face_collection: FaceCollection = self.recognition.get_face_collection()  # this is how we add new faces
 
         # setup other class properties
         self.check_existing_subjects = True
-        self.subjects_to_upload: Dict[str, SubjectRecord] = {}  # {Subject name: record}
+        self.subjects_to_upload: Dict[str, SubjectPathRecord] = {}  # {Subject name: record}
 
-    def add_subjects(self, subjects: List[SubjectRecord]) -> None:
+    def add_subjects(self, subjects: List[SubjectPathRecord]) -> None:
         for subject in subjects:
             self.subjects_to_upload[subject.std_subject_name()] = subject
         print(f"{len(self.subjects_to_upload)} Subjects Loaded")

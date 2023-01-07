@@ -4,11 +4,9 @@ import sys
 import time
 from pathlib import Path
 
-import cv2
-import numpy as np
 from PySide6.QtCore import QDate, QDir, QStandardPaths, Qt, QUrl, Slot
-from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QIcon, QImage, QPixmap
-from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
+from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QIcon, QPixmap
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -31,8 +29,9 @@ from easyID.settings import (
     UNIDENTIFIED_SUBJECTS_TIMEOUT,
     WEBCAM_ID,
 )
-from easyID.video_processing import ProcessingThread
-from easyID.webcam_thread import VideoThread
+from easyID.threads.recognition_thread import RecognitionThread
+from easyID.threads.video_thread import VideoThread
+from easyID.threads.webcam_thread import WebcamThread
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -120,7 +119,7 @@ class MainWindow(QMainWindow):
         self._unidentified_person_audio: QMediaPlayer = QMediaPlayer(self)
         self._unidentified_person_alert: QMessageBox = QMessageBox()
 
-        # setup unidentifed person alerts
+        # setup unidentified person alerts
         audio_output = QAudioOutput(self)
         audio_output.setVolume(0.0 if MUTE_ALERTS else 0.25)
         self._unidentified_person_audio.setAudioOutput(audio_output)
@@ -163,21 +162,24 @@ class MainWindow(QMainWindow):
         # setup main widget (main view)
         self.setCentralWidget(self._tab_widget)
 
-        # initalize and link thread that updates camera view
-        self.main_video_thread = VideoThread(self)
-        self.main_video_thread.finished.connect(self.close)
+        # initialize thread that connects to the webcam
+        self.webcam_thread = WebcamThread()  # python thread
+        self._camera_viewfinder.setFixedSize(self.webcam_thread.width, self.webcam_thread.height)
+
+        # initialize and link thread that updates camera view
+        self.main_video_thread = VideoThread(self.webcam_thread, self)  # Qt thread
+        self.main_video_thread.finished.connect(self.close)  # type: ignore
         self.main_video_thread.updateFrame.connect(self.setImage)
-        self._camera_viewfinder.setFixedSize(self.main_video_thread.width, self.main_video_thread.height)
 
         # initialize and link thread that gets facial recognition results
-        self.main_processing_thread = ProcessingThread(self.main_video_thread, args)  # python thread, not qt thread
+        self.recognition_thread = RecognitionThread(self.webcam_thread, args)  # python thread
 
         # add the camera to the main view
         self._tab_widget.addTab(self._camera_viewfinder, "Viewfinder")
         self.setWindowTitle(f"EasyID viewer: Camera {WEBCAM_ID}")
-        self.show_status_message(f"EasyID viewer: ({self.main_video_thread.width}x{self.main_video_thread.height})")
+        self.show_status_message(f"EasyID viewer: ({self.webcam_thread.width}x{self.webcam_thread.height})")
         # start all threads
-        self.start()
+        self.start_threads()
 
     def show_status_message(self, message):
         self.statusBar().showMessage(message, 5000)
@@ -197,38 +199,30 @@ class MainWindow(QMainWindow):
         # self._tab_widget.setCurrentIndex(index)  # switch to new tab
 
     @Slot()
-    def kill_threads(self) -> None:
-        print("Finishing...")
-        # stop the video thread
-        self._take_picture_action.setEnabled(False)
-        self.main_video_thread.cap.release()
-        cv2.destroyAllWindows()
-        self.main_video_thread.terminate()
-        # stop the processing thread
-        self.main_processing_thread.terminate()
-        # Give time for the thread to finish
-        time.sleep(1)
+    def start_threads(self) -> None:
+        print("Starting...")
+        self.webcam_thread.start()  # start webcam thread / connect to webcam
+        self.main_video_thread.start()  # start video thread / update camera on gui
+        self.recognition_thread.start()  # start recognition thread / get facial recognition results
+        self._take_picture_action.setEnabled(True)  # enable take picture button
 
     @Slot()
-    def start(self) -> None:
-        print("Starting...")
-        self._take_picture_action.setEnabled(True)
-        self.main_video_thread.start()
-        self.main_processing_thread.start()
+    def kill_threads(self) -> None:
+        print("Finishing...")
+        self._take_picture_action.setEnabled(False)
+        # stop recognition
+        self.recognition_thread.stop()
+        # stop the video thread
+        self.main_video_thread.stop()
+        # stop the webcam thread
+        self.webcam_thread.stop()
+        # Finish closing the video thread
+        self.main_video_thread.terminate()
+        time.sleep(1)
 
-    @Slot(QImage, bool)
-    def setImage(self, frame: np.ndarray, unidentified_subject: bool) -> None:
-        # convert cv2 frame to QImage for Qt(GUI)
-        # rgb swapped changes bgr to rgb, then we change it to a PixMap for displaying in the GUI
-        self._preview_pixmap = QPixmap.fromImage(
-            QImage(
-                frame.data,
-                self.main_video_thread.width,
-                self.main_video_thread.height,
-                3 * self.main_video_thread.width,
-                QImage.Format_RGB888,
-            ).rgbSwapped()
-        )
+    @Slot(QPixmap, bool)
+    def setImage(self, pixmap: QPixmap, unidentified_subject: bool) -> None:
+        self._preview_pixmap = pixmap
         self._camera_viewfinder.setPixmap(self._preview_pixmap)
         if unidentified_subject and time.time() - self.last_unidentified_time > UNIDENTIFIED_SUBJECTS_TIMEOUT:
             self.last_unidentified_time = time.time()
