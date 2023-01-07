@@ -70,7 +70,7 @@ class ParseBlueprintData:
             if row["Images"] == "":
                 print(f"Skipping {row['First Name']} {row['Last Name']} because they have no picture")
                 continue
-            image_path = self.photo_dir / row["Images"]
+            image_path = self.photo_dir / str(row["Images"])
             if not image_path.exists() and not image_path.is_file():
                 raise ValueError(f"The image for {row['Last Name']}, {row['First Name']} does not exist")
             # now we create the SubjectRecord object
@@ -78,9 +78,9 @@ class ParseBlueprintData:
                 SubjectPathRecord(
                     str(row["Last Name"]),
                     str(row["First Name"]),
-                    row["Subject ID"]
-                    if row["Subject ID"]
-                    else row["Internal ID"],  # if empty, use Internal ID (for volunteers)
+                    str(
+                        row["Subject ID"] if row["Subject ID"] else row["Internal ID"]
+                    ),  # if empty, use Internal ID (for volunteers)
                     int(row["Grade"] if row["Grade"] else 13),
                     Path(image_path),
                 )

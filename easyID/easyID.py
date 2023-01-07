@@ -29,6 +29,7 @@ from easyID.settings import (
     UNIDENTIFIED_SUBJECTS_TIMEOUT,
     WEBCAM_ID,
 )
+from easyID.threads.logging_thread import LoggingThread
 from easyID.threads.recognition_thread import RecognitionThread
 from easyID.threads.video_thread import VideoThread
 from easyID.threads.webcam_thread import WebcamThread
@@ -174,6 +175,9 @@ class MainWindow(QMainWindow):
         # initialize and link thread that gets facial recognition results
         self.recognition_thread = RecognitionThread(self.webcam_thread, args)  # python thread
 
+        # initialize and link thread that processes the data and saves it locally or sends it to the api
+        self.logging_thread = LoggingThread(self.recognition_thread)  # python thread
+
         # add the camera to the main view
         self._tab_widget.addTab(self._camera_viewfinder, "Viewfinder")
         self.setWindowTitle(f"EasyID viewer: Camera {WEBCAM_ID}")
@@ -204,12 +208,15 @@ class MainWindow(QMainWindow):
         self.webcam_thread.start()  # start webcam thread / connect to webcam
         self.main_video_thread.start()  # start video thread / update camera on gui
         self.recognition_thread.start()  # start recognition thread / get facial recognition results
+        self.logging_thread.start()  # start logging thread / process data to save it locally or send it to the api
         self._take_picture_action.setEnabled(True)  # enable take picture button
 
     @Slot()
     def kill_threads(self) -> None:
         print("Finishing...")
         self._take_picture_action.setEnabled(False)
+        # stop logging thread
+        self.logging_thread.stop()
         # stop recognition
         self.recognition_thread.stop()
         # stop the video thread

@@ -50,7 +50,7 @@ class UploadSubjects:
         print(f"Upload complete in {datetime.now() - s_time} Seconds\n\n\n\n")
 
     def upload_subject_photos(self) -> None:
-        existing_subject_names = []  # if they already have a photo, we don't need to upload another.
+        existing_subject_names: set[str] = set()  # if they already have a photo, we don't need to upload another.
         if self.check_existing_subjects:
             existing_subject_names = self.get_existing_subject_photos()
         print("Uploading Photos, This may take a while...")
