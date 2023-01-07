@@ -106,7 +106,7 @@ class VideoThread(QThread):
                                 1,
                             )
                 # send frame to pyqt
-                print("Emitting frame")
+                # print("Emitting frame")
                 # convert cv2 frame to QImage for Qt(GUI)
                 # rgb swapped changes bgr to rgb, then we change it to a PixMap for displaying in the GUI
                 gui_pixmap = QPixmap.fromImage(
