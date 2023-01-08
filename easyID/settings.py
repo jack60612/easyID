@@ -4,7 +4,7 @@ from pathlib import Path
 UNIDENTIFIED_SUBJECTS_TIMEOUT = 5  # seconds
 SIMILARITY_THRESHOLD = 0.8  # 80% similarity
 NUMBER_OF_SUBJECTS = 2  # number of subjects to be recognized
-
+DEFAULT_DIRECTORY = Path.home() / "easyID"
 # config options
 CF_OPTIONS = {
     "limit": NUMBER_OF_SUBJECTS,

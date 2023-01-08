@@ -2,9 +2,10 @@ import argparse
 import os
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QDate, QDir, QStandardPaths, Qt, QUrl, Slot
+from PySide6.QtCore import Qt, QUrl, Slot
 from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QIcon, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import (
@@ -22,6 +23,7 @@ from PySide6.QtWidgets import (
 
 from easyID.settings import (
     API_KEY,
+    DEFAULT_DIRECTORY,
     DEFAULT_HOST,
     DEFAULT_PORT,
     MUTE_ALERTS,
@@ -67,7 +69,7 @@ class ImageView(QWidget):
         main_layout.addWidget(self._image_label)
 
         top_layout = QHBoxLayout()
-        self._file_name_label = QLabel(QDir.toNativeSeparators(file_name))
+        self._file_name_label = QLabel(file_name)
         self._file_name_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
 
         top_layout.addWidget(self._file_name_label)
@@ -237,17 +239,18 @@ class MainWindow(QMainWindow):
 
 
 def next_image_file_name(manual: bool = True) -> str:
-    pictures_location = Path(QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)) / "easyID"
+    pictures_location = DEFAULT_DIRECTORY / "Pictures"
     if not pictures_location.exists():
         pictures_location.mkdir()
-    date_string = QDate.currentDate().toString("yyyyMMdd")
+    date_string = datetime.now().strftime("%Y%m%d")
     prefix = "manual_snapshot_" if manual else "snapshot_"
-    pattern = f"{pictures_location}/{prefix}{date_string}_{{:03d}}.jpg"
+    pattern = f"{prefix}{date_string}_{{:03d}}.jpg"
     n = 1
     while True:
-        result = pattern.format(n)
-        if not Path(result).exists():
-            return result
+        resulting_dir = pattern.format(n)
+        result = pictures_location / resulting_dir
+        if not result.exists():
+            return str(result)
         n = n + 1
 
 
