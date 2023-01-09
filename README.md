@@ -15,9 +15,9 @@ TBD
 - [x] Add more info to README.md
 - [x] Fix Warning Sound
 - [x] Add a Timestamp to video feed.
-- [ ] Make Second DB / API for storing who came to school on what days OR just add users to a spreadsheet on each computer 
+- [x] Make Second DB / API for storing who came to school on what days OR just add users to a spreadsheet on each computer 
 - [ ] If Making New API Using python, use existing postgres database
-- [ ] Add a way to add users to the DB / Make data migration tools
-- [ ] Add all users to compreface for speed testing.
+- [x] Add a way to add users to the DB / Make data migration tools
+- [x] Add all users to compreface for speed testing.
 - [ ] Add a nicer config file (not important)
 - [ ] Add Ability to Record Video Feed (not sure if needed)
