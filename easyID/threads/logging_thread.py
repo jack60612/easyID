@@ -6,6 +6,7 @@ from threading import Thread
 
 from easyID.classes.recognition_result import RecognitionResult
 from easyID.classes.subject_record import SubjectRecord
+from easyID.threads.exporters.export_to_spreadsheet import SpreadsheetExporter
 from easyID.threads.recognition_thread import RecognitionThread
 
 
@@ -23,6 +24,8 @@ class LoggingThread:
         self._recognition_thread: RecognitionThread = recognition_thread
         # {datetime to the minute: {SubjectRecord: list[all seconds seen]}}
         self._pending_results: dict[datetime.datetime, dict[SubjectRecord, list[int]]] = {}
+        # export class
+        self.export_class = SpreadsheetExporter()
 
     def start(self) -> None:
         self._receiving_thread.start()
@@ -36,7 +39,6 @@ class LoggingThread:
             try:  # timestamp is datetime, results is a non-empty list of RecognitionResult
                 timestamp, results = self._recognition_thread.logging_queue.get(timeout=1)  # 1 second timeout
             except Empty:
-                print("Queue timeout: 1 second with no result")
                 continue
             filtered_results: list[RecognitionResult] = [
                 result for result in results if result.is_matching and result.subject is not None
@@ -52,7 +54,6 @@ class LoggingThread:
                 if subject not in self._pending_results[minute_timestamp]:
                     self._pending_results[minute_timestamp][subject] = []
                 self._pending_results[minute_timestamp][subject].append(seconds)
-            print(f"{timestamp}: {len(subjects)} subjects were processed and removed from the queue")
 
     def _export_data(self) -> None:
         while not self._stop:
@@ -65,8 +66,7 @@ class LoggingThread:
                 continue
             minute_results: dict[SubjectRecord, list[int]] = self._pending_results.pop(oldest_minute)
             final_subject_info = get_real_timestamps(oldest_minute, minute_results)
-            print(f"Exporting {final_subject_info}")
-            # TODO: export to excel here (or csv, or whatever)
+            self.export_class.export(final_subject_info)
 
 
 def get_real_timestamps(
