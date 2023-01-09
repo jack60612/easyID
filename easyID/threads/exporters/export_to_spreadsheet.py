@@ -13,14 +13,14 @@ class SpreadsheetExporter:
         folder_path.mkdir(parents=True, exist_ok=True)
         self.file_name: Path = get_file_name(folder_path)
         self.fieldnames = ["ID Number", "Last Name", "First Name", "Grade", "First Seen", "Last Seen", "Times Seen"]
-        # Add headers
-        with open(self.file_name, "w", newline="") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames, dialect="excel")
-            writer.writeheader()
+        self.initialized = False
 
     def export(self, records_and_times: dict[SubjectRecord, list[datetime]]) -> None:
         with open(self.file_name, "w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames, dialect="excel")
+            if not self.initialized:
+                writer.writeheader()
+                self.initialized = True
             for record, times in records_and_times.items():
                 writer.writerow(
                     {
