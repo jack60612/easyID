@@ -18,7 +18,7 @@ WEBCAM_ID = 0
 WEBCAM_WIDTH = 960
 WEBCAM_HEIGHT = 720
 
-DEFAULT_HOST = "https://localhost"
+DEFAULT_HOST = "https://easyid-server.local"
 DEFAULT_PORT = "443"
 API_KEY = "f0875d62-93c0-49ca-98bd-b74d2d415ca4"
 # SELF_SIGNED_CERT_DIR = None # Default off
