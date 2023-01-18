@@ -33,6 +33,10 @@ class LoggingThread:
 
     def stop(self) -> None:
         self._stop = True
+        self._exporting_thread.join()  # wait for exporter to stop
+        for minute_ts, results in self._pending_results.keys():  # export remaining data on shutdown.
+            final_subject_info = get_real_timestamps(minute_ts, results)
+            self.export_class.export(final_subject_info)
 
     def _receiver(self) -> None:
         while not self._stop:
