@@ -29,7 +29,9 @@ from easyID.settings import (
     MUTE_ALERTS,
     SELF_SIGNED_CERT_DIR,
     UNIDENTIFIED_SUBJECTS_TIMEOUT,
+    WEBCAM_HEIGHT,
     WEBCAM_ID,
+    WEBCAM_WIDTH,
 )
 from easyID.threads.logging_thread import LoggingThread
 from easyID.threads.recognition_thread import RecognitionThread
@@ -167,7 +169,7 @@ class MainWindow(QMainWindow):
 
         # initialize thread that connects to the webcam
         self.webcam_thread = WebcamThread()  # python thread
-        self._camera_viewfinder.setFixedSize(self.webcam_thread.width, self.webcam_thread.height)
+        self._camera_viewfinder.setFixedSize(WEBCAM_WIDTH, WEBCAM_HEIGHT)
 
         # initialize and link thread that updates camera view
         self.main_video_thread = VideoThread(self.webcam_thread, self)  # Qt thread
