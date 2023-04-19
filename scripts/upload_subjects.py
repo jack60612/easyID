@@ -8,12 +8,11 @@ from compreface.collections import FaceCollection, Subjects
 from compreface.service import RecognitionService
 
 from easyID.classes.subject_record import SubjectPathRecord
-from easyID.settings import CF_OPTIONS, SELF_SIGNED_CERT_DIR
+from easyID.settings import CF_OPTIONS, DETECTION_PROBABILITY_THRESHOLD, SELF_SIGNED_CERT_DIR
 
 
 class UploadSubjects:
     def __init__(self, api_key: str, host: str, port: str) -> None:
-
         if SELF_SIGNED_CERT_DIR is not None:  # add self-signed certificate
             os.environ["REQUESTS_CA_BUNDLE"] = str(SELF_SIGNED_CERT_DIR)
         # setup CompreFace
@@ -25,6 +24,9 @@ class UploadSubjects:
             self.recognition.get_subjects()
         )  # this is how we add new subjects & find existing ones
         self.cf_face_collection: FaceCollection = self.recognition.get_face_collection()  # this is how we add new faces
+
+        # std options for uploading subjects
+        self.upload_options: dict = dict(det_prob_threshold=DETECTION_PROBABILITY_THRESHOLD)
 
         # setup other class properties
         self.check_existing_subjects = True
@@ -55,16 +57,19 @@ class UploadSubjects:
             existing_subject_names = self.get_existing_subject_photos()
         print("Uploading Photos, This may take a while...")
         s_time = datetime.now()
+        total_subjects = len(self.subjects_to_upload)
+        s_index = 0
         for subject_name, subject_record in self.subjects_to_upload.items():
+            s_index += 1
             if self.check_existing_subjects and subject_name in existing_subject_names:
-                print(f"Subject {subject_name} already has a photo. Skipping.")
+                print(f"Subject {subject_name} already has a photo. Skipping. {s_index}/{total_subjects}")
                 continue
-            result = self.cf_face_collection.add(str(subject_record.image_path), subject_name)
+            result = self.cf_face_collection.add(str(subject_record.image_path), subject_name, self.upload_options)
             if result.get("image_id") is None:
-                print(f"Error adding {subject_name} to DB. Skipping.")
+                print(f"Error adding {subject_name} to DB. Skipping. {s_index}/{total_subjects}")
                 continue
-            print(f"Image ID: {result.get('image_id')} For {subject_name} Added to DB")
-        print(f"\n\n\n\n{len(self.subjects_to_upload)-len(existing_subject_names)} Pictures Added to DB")
+            print(f"Image ID: {result.get('image_id')} For {subject_name} Added to DB, {s_index}/{total_subjects}")
+        print(f"\n\n\n\n{total_subjects-len(existing_subject_names)} Pictures Added to DB")
         print(f"Picture Upload complete in {datetime.now() - s_time} Seconds")
 
     def get_existing_subject_photos(self) -> Set[str]:
