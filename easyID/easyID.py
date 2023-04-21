@@ -116,13 +116,13 @@ class MainWindow(QMainWindow):
 
         # window objects
         self.last_unidentified_time: int = 0  # gap between last unidentified subject and current time to avoid spam
-        self._preview_pixmap: QPixmap = QPixmap()
-        self._tab_widget: QTabWidget = QTabWidget()
+        self._video_pixmap: QPixmap = QPixmap()
+        self._tab_widget: QTabWidget = QTabWidget(self)
         self._camera_viewfinder: QLabel = QLabel(self)
 
         # unidentified alerts & audio ( use default device )
         self._unidentified_person_audio: QMediaPlayer = QMediaPlayer(self)
-        self._unidentified_person_alert: QMessageBox = QMessageBox()
+        self._unidentified_person_alert: QMessageBox = QMessageBox(self)
 
         # setup unidentified person alerts
         audio_output = QAudioOutput(self)
@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
         self._unidentified_person_alert.setIcon(QMessageBox.Icon.Warning)
 
         # setup toolbar and menus
-        tool_bar = QToolBar()
+        tool_bar = QToolBar(self)
         self.addToolBar(tool_bar)
 
         # setup file menu and take picture action
@@ -169,7 +169,12 @@ class MainWindow(QMainWindow):
 
         # initialize thread that connects to the webcam
         self.webcam_thread = WebcamThread()  # python thread
-        self._camera_viewfinder.setFixedSize(WEBCAM_WIDTH, WEBCAM_HEIGHT)
+        self._camera_viewfinder.setScaledContents(False)  # we scale ourselves
+        self._camera_viewfinder.setMinimumSize(1, 1)  # we set this to start window at smallest size
+        self._camera_viewfinder.setMaximumSize(
+            self.webcam_thread.width, self.webcam_thread.height - tool_bar.heightForWidth(self.webcam_thread.width)
+        )  # dont stretch beyond camera resolution
+        self._camera_viewfinder.setAlignment(Qt.AlignCenter)  # center the image
 
         # initialize and link thread that updates camera view
         self.main_video_thread = VideoThread(self.webcam_thread, self)  # Qt thread
@@ -195,9 +200,9 @@ class MainWindow(QMainWindow):
     @Slot()
     def take_picture(self, manual: bool = True) -> None:
         file_name = next_image_file_name(manual)
-        self._preview_pixmap.save(file_name, format="JPG")
+        self._video_pixmap.save(file_name, format="JPG")
         index = self._tab_widget.count()
-        image_view = ImageView(index, self._tab_widget, self._preview_pixmap, file_name)
+        image_view = ImageView(index, self._tab_widget, self._video_pixmap, file_name)
         if manual:
             self._tab_widget.addTab(image_view, f"Manual Capture #{index}")
         else:
@@ -233,9 +238,12 @@ class MainWindow(QMainWindow):
 
     @Slot(QPixmap, bool)
     def setImage(self, pixmap: QPixmap, unidentified_subject: bool) -> None:
-        self._preview_pixmap = pixmap
-        self._camera_viewfinder.setPixmap(self._preview_pixmap)
-        if unidentified_subject and time.time() - self.last_unidentified_time > UNIDENTIFIED_SUBJECTS_TIMEOUT:
+        # re-scale the pixmap based on the size of the label (video output thing)
+        self._video_pixmap = pixmap.scaled(self._camera_viewfinder.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self._camera_viewfinder.setPixmap(self._video_pixmap)
+        if not unidentified_subject and time.time() - self.last_unidentified_time > 1:
+            self.last_unidentified_time = time.time()
+        elif unidentified_subject and time.time() - self.last_unidentified_time > UNIDENTIFIED_SUBJECTS_TIMEOUT:
             self.last_unidentified_time = time.time()
             self.take_picture(manual=False)
 
@@ -269,7 +277,7 @@ def main() -> None:
     available_geometry = main_win.screen().availableGeometry()
     main_win.resize(available_geometry.width() / 3, available_geometry.height() / 2)
     main_win.show()
-    sys.exit(app.exec())
+    app.exec()
 
 
 if __name__ == "__main__":
