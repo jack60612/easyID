@@ -70,29 +70,29 @@ class ImageView(QWidget):
         self._image_label.setPixmap(preview_pixmap)
         main_layout.addWidget(self._image_label)
 
-        top_layout = QHBoxLayout()
+        bottom_layout = QHBoxLayout()
         self._file_name_label = QLabel(file_name)
         self._file_name_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
 
-        top_layout.addWidget(self._file_name_label)
-        top_layout.addStretch()
+        bottom_layout.addWidget(self._file_name_label)
+        bottom_layout.addStretch()
         # Delete button
         delete_button = QPushButton("Delete")
         delete_button.setToolTip("Delete this image")
-        top_layout.addWidget(delete_button)
+        bottom_layout.addWidget(delete_button)
         delete_button.clicked.connect(self.delete)
         # Copy button
         copy_button = QPushButton("Copy")
         copy_button.clicked.connect(self.copy)
         copy_button.setToolTip("Copy file name to clipboard")
-        top_layout.addWidget(copy_button)
+        bottom_layout.addWidget(copy_button)
         copy_button.clicked.connect(self.copy)
         # Launch button
         launch_button = QPushButton("Launch")
         launch_button.setToolTip("Launch image viewer")
-        top_layout.addWidget(launch_button)
+        bottom_layout.addWidget(launch_button)
         launch_button.clicked.connect(self.launch)
-        main_layout.addLayout(top_layout)
+        main_layout.addLayout(bottom_layout)
 
     # These are for the buttons
     @Slot()
