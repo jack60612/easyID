@@ -22,6 +22,7 @@ class VideoThread(QThread):
 
     def stop(self) -> None:
         self._stop = True
+        self.exit()
 
     def run(self) -> None:
         prev_frame = None
@@ -128,4 +129,3 @@ class VideoThread(QThread):
                 self.msleep(5)  # sleep for 5 ms
         # on exit:
         print("VideoThread exited")
-        sys.exit(-1)

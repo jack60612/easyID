@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QUrl, Slot
-from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QIcon, QPixmap
+from PySide6.QtGui import QAction, QCloseEvent, QDesktopServices, QGuiApplication, QIcon, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import (
     QApplication,
@@ -155,7 +155,7 @@ class MainWindow(QMainWindow):
             "E&xit",
             self,
             shortcut="Ctrl+Q",
-            triggered=self.kill_threads,
+            triggered=self.close,
         )
         file_menu.addAction(exit_action)
 
@@ -232,9 +232,10 @@ class MainWindow(QMainWindow):
         self.main_video_thread.stop()
         # stop the webcam thread
         self.webcam_thread.stop()
-        # Finish closing the video thread
-        self.main_video_thread.terminate()
-        time.sleep(1)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.kill_threads()  # kill threads then aceept the close event (close app)
+        event.accept()
 
     @Slot(QPixmap, bool)
     def setImage(self, pixmap: QPixmap, unidentified_subject: bool) -> None:

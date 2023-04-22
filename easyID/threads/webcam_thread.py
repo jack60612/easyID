@@ -31,6 +31,7 @@ class WebcamThread:
 
     def stop(self) -> None:
         self._stop = True
+        self._main_thread.join()  # wait for webcam thread to stop
         self.cap.release()
 
     def run(self) -> None:

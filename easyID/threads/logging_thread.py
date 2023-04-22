@@ -40,6 +40,10 @@ class LoggingThread:
 
     def _receiver(self) -> None:
         while not self._stop:
+            if not self._recognition_thread.running:
+                print("Recognition Thread not running, exiting Logging Thread")
+                self.stop()
+                break
             try:  # timestamp is datetime, results is a non-empty list of RecognitionResult
                 timestamp, results = self._recognition_thread.logging_queue.get(timeout=1)  # 1 second timeout
             except Empty:
@@ -58,6 +62,7 @@ class LoggingThread:
                 if subject not in self._pending_results[minute_timestamp]:
                     self._pending_results[minute_timestamp][subject] = []
                 self._pending_results[minute_timestamp][subject].append(seconds)
+        print("Logging Receiving Thread Exited")
 
     def _export_data(self) -> None:
         while not self._stop:
@@ -71,6 +76,7 @@ class LoggingThread:
             minute_results: dict[SubjectRecord, list[int]] = self._pending_results.pop(oldest_minute)
             final_subject_info = get_real_timestamps(oldest_minute, minute_results)
             self.export_class.export(final_subject_info)
+        print("Logging Exporting Thread Exited")
 
 
 def get_real_timestamps(
