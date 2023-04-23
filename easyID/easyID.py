@@ -29,9 +29,7 @@ from easyID.settings import (
     MUTE_ALERTS,
     SELF_SIGNED_CERT_DIR,
     UNIDENTIFIED_SUBJECTS_TIMEOUT,
-    WEBCAM_HEIGHT,
     WEBCAM_ID,
-    WEBCAM_WIDTH,
 )
 from easyID.threads.logging_thread import LoggingThread
 from easyID.threads.recognition_thread import RecognitionThread

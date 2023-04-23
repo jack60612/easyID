@@ -4,9 +4,9 @@
 ## Installation:
 1. Install Git + Python
 2. Clone this repository
-3. Install dependencies `pip install -r requirements.txt`
+3. Install app: `pip install -e .`
 4. Edit the config in `easyID/settings.py`
-5. Run `python -m easyid`
+5. Run `easyID` to start the app
 
 ## Building the app:
 TBD
