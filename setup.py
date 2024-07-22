@@ -3,12 +3,12 @@ from setuptools import setup
 dependencies = [
     "packaging",
     "compreface-sdk~=0.6.0",
-    "requests~=2.28.2",
-    "opencv-python~=4.7.0.72",
-    "numpy~=1.24.3",
-    "PySide6~=6.5.0",
-    "PySide6-Addons~=6.5.0",
-    "PySide6-Essentials~=6.5.0",
+    "requests~=2.29.0",
+    "opencv-python~=4.10.0.84",
+    "numpy~=1.26.4",
+    "PySide6~=6.7.2",
+    "PySide6-Addons~=6.7.2",
+    "PySide6-Essentials~=6.7.2",
 ]
 
 dev_dependencies = [

@@ -4,7 +4,7 @@
 ## Installation:
 1. Install Git + Python
 2. Clone this repository
-3. Install app: `pip install -e .`
+3. Install app: `python3 -m venv venv`, `pip install setuptools wheel` `pip install -e .`
 4. Edit the config in `easyID/settings.py`
 5. Run `easyID` to start the app
 
