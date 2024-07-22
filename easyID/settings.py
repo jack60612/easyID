@@ -21,7 +21,7 @@ WEBCAM_HEIGHT = 720
 
 DEFAULT_HOST = "https://easyid-server.local"
 DEFAULT_PORT = "443"
-API_KEY = "353d2674-467b-42fc-a754-d85fe6359a7c"
+API_KEY = "14f0d188-357e-4cfc-8f18-889267120116"
 # SELF_SIGNED_CERT_DIR = None # Default off
 SELF_SIGNED_CERT_DIR = Path("../easyID-server/main-nginx/nginx-selfsigned.crt")
 ADD_TIMESTAMP = True
